@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteRule ^([^/]*)_([^/]*)\.html$ /?do=$1&id=$2 [L]
+RewriteRule ^([^/]*)\.html$ /?do=$1 [L]
