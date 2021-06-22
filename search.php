@@ -19,7 +19,7 @@ define('INCLUDE_PATH', SCRIPT_PATH.'/include');
 require_once VENDOR_PATH."/autoload.php";
 require_once INCLUDE_PATH."/common.inc.php";
 
-$common = new common();
+$common = new common(true);
 $requestData= $_POST;
 $is_edit_mode = false;
 if(isset($_GET['type']) && $_GET['type'] === 'edit'

@@ -13,7 +13,6 @@
     "smarty/smarty": "v3.1.39",
     "nette/database": "v3.1.3",
     "wixel/gump": "v1.12.1",
-    "phpfastcache/phpfastcache": "8.0.5",
-    "dompdf/dompdf": "v1.0.2"
+    "phpfastcache/phpfastcache": "8.0.5"
   }
 }

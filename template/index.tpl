@@ -31,7 +31,18 @@
 <body>
     <div id="wrapper">
         {$index.navigation}
+        <div id="page-wrapper">
         {$index.content}
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+            <div class="container my-auto">
+                <div class="copyright text-center my-auto">
+                    <span>Copyright &copy; CodeDesigns 2021 | Script: Version {$index.version} / Database: Version {$index.dbv}</span>
+                </div>
+            </div>
+        </footer>
+        <!-- End of Footer -->
+        </div>
     </div>
     <!-- /#wrapper -->
 

@@ -19,7 +19,7 @@ define('INCLUDE_PATH', SCRIPT_PATH.'/include');
 require_once VENDOR_PATH."/autoload.php";
 require_once INCLUDE_PATH."/common.inc.php";
 
-$common = new common();
+$common = new common(false);
 $notifications = new notifications($common);
 
 switch ($common->do) {

@@ -7,31 +7,58 @@
  */
 
 use Phpfastcache\CacheManager;
-use Nette\Database\Connection;
+use Nette\Database\{Connection, Explorer, Row};
+use Nette\Database\Table\ActiveRow;
 use Phpfastcache\Core\Pool\ExtendedCacheItemPoolInterface;
 use Dompdf\Dompdf;
 
 require_once INCLUDE_PATH."/config.inc.php";
 require_once INCLUDE_PATH."/notifications.inc.php";
 require_once INCLUDE_PATH."/user.inc.php";
+require_once INCLUDE_PATH."/updater.inc.php";
 
 class common
 {
     public Smarty $smarty;
     public Connection $database;
+    public Explorer $explorer;
     public array $assign;
     public mixed $do;
     public GUMP $validator;
     public ExtendedCacheItemPoolInterface $cache;
     public user $users;
+    public ActiveRow $config;
+    public Updater $updater;
+    public bool $ajax;
 
-    public function __construct() {
+    /**
+     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \Phpfastcache\Exceptions\PhpfastcacheDriverNotFoundException
+     * @throws \Phpfastcache\Exceptions\PhpfastcacheInvalidConfigurationException
+     * @throws \Phpfastcache\Exceptions\PhpfastcacheDriverCheckException
+     * @throws SmartyException
+     * @throws ReflectionException
+     * @throws \Phpfastcache\Exceptions\PhpfastcacheLogicException
+     * @throws \Phpfastcache\Exceptions\PhpfastcacheDriverException
+     * @throws \Phpfastcache\Exceptions\PhpfastcacheInvalidArgumentException
+     */
+    public function __construct(bool $ajax=false) {
         global $dsn,$user,$passwd,$debug;
+        $this->ajax = $ajax;
         $this->smarty = new Smarty();
         $this->database = new Connection($dsn, $user, $passwd);
         $this->database->query("SET character_set_client=utf8");
         $this->database->query("SET character_set_connection=utf8");
         $this->database->query("SET character_set_results=utf8");
+
+        if(!is_dir(SCRIPT_PATH.'/cache/')) {
+            mkdir(SCRIPT_PATH.'/cache');
+        }
+
+        $storage = new Nette\Caching\Storages\FileStorage(SCRIPT_PATH.'/cache/');
+        $structure = new Nette\Database\Structure($this->database, $storage);
+        $conventions = new Nette\Database\Conventions\DiscoveredConventions($structure);
+        $this->explorer = new Explorer($this->database, $structure, $conventions, $storage);
 
         $this->smarty->setTemplateDir(SCRIPT_PATH.'/template/');
         $this->smarty->setCompileDir(SCRIPT_PATH.'/template_c/');
@@ -40,27 +67,30 @@ class common
 
         $this->smarty->setCaching(!$debug);
         $this->smarty->setDebugging($debug);
-        $this->smarty->setForceCompile($debug);
+        $this->smarty->setForceCompile(true);
 
-        //Check the Database & Update
-        $config = $this->database->fetchAll("SELECT * FROM `config` WHERE `id` = 1;");
-        $updates = $this->getFiles(SCRIPT_PATH.'/database/updates',false,true, ['sql']);
-        $baseVersion = 0;
-        foreach ($updates as $update) {
-            $version = explode('_',$update);
-            $version = str_ireplace('.sql', '', $version['1']);
-            if(!$baseVersion)
-                $baseVersion = intval($config[0]->dbv+1);
+        $this->config = $this->explorer->table('config')->get(1);
 
-            if(intval($version) == $baseVersion) {
-                $sql = file_get_contents(SCRIPT_PATH.'/database/updates/'.$update);
-                if(!empty($sql)) {
-                    $this->database->beginTransaction();
-                    $this->database->query('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";');
-                    $this->database->query($sql);
-                    $this->database->query('UPDATE `config` SET `dbv` = ? WHERE `id` = 1;',$baseVersion);
-                    $this->database->commit();
-                    $baseVersion++;
+        if(!$this->ajax) {
+            //Check the Database & Update
+            $updates = $this->getFiles(SCRIPT_PATH . '/database/updates', false, true, ['sql']);
+            $baseVersion = 0;
+            foreach ($updates as $update) {
+                $version = explode('_', $update);
+                $version = str_ireplace('.sql', '', $version['1']);
+                if (!$baseVersion)
+                    $baseVersion = intval($this->config->offsetGet('dbv') + 1);
+
+                if (intval($version) == $baseVersion) {
+                    $sql = file_get_contents(SCRIPT_PATH . '/database/updates/' . $update);
+                    if (!empty($sql)) {
+                        $this->database->beginTransaction();
+                        $this->database->query('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";');
+                        $this->database->query($sql);
+                        $this->database->query('UPDATE `config` SET `dbv` = ? WHERE `id` = 1;', $baseVersion);
+                        $this->database->commit();
+                        $baseVersion++;
+                    }
                 }
             }
         }
@@ -73,6 +103,13 @@ class common
         $this->validator = new GUMP('de');
         $_POST = $this->validator->sanitize($_POST);
         $_GET = $this->validator->sanitize($_GET);
+
+        //Updater
+        $this->updater = new Updater($this);
+        if($this->updater->update()) {
+            header("Location: search.html");
+            exit();
+        }
 
         //Link Users
         $this->users = new user($this);
@@ -90,6 +127,9 @@ class common
             header("Location: search.html");
             exit();
         }
+
+        $this->assign['index']['version'] = $this->updater->getVersion();
+        $this->assign['index']['dbv'] = $this->config->offsetGet('dbv');
 
         //Navigation
         $this->smarty->clearAllAssign();
@@ -312,8 +352,6 @@ class common
     }
 
     public function page_scan(): void {
-        global $notifications;
-
         $this->smarty->clearAllAssign();
       //  $this->smarty->assign('entities',$entities);
         $this->assign['index']['content'] = $this->smarty->fetch(SCRIPT_PATH.'/template/scan/scanner.tpl');
@@ -398,7 +436,8 @@ class common
      * @param bool $blacklist_word (optional)
      * @return array|bool
      */
-    public function getFiles(string $dir=null, bool $only_dir=false, bool $only_files=false, array $file_ext= [], bool $preg_match=false, array $blacklist= [], bool $blacklist_word=false) {
+    public function getFiles(string $dir=null, bool $only_dir=false, bool $only_files=false, array $file_ext= [], bool $preg_match=false, array $blacklist= [], bool $blacklist_word=false): bool|array
+    {
         $files = [];
         if (!file_exists($dir) && !is_dir($dir))
             return $files;
@@ -455,5 +494,85 @@ class common
             return $files;
         } else
             return false;
+    }
+
+    /**
+     * @return Connection
+     */
+    public function getDatabase(): Connection
+    {
+        return $this->database;
+    }
+
+    /**
+     * @return \Phpfastcache\Cluster\AggregatablePoolInterface|ExtendedCacheItemPoolInterface
+     */
+    public function getCache(): \Phpfastcache\Cluster\AggregatablePoolInterface|ExtendedCacheItemPoolInterface
+    {
+        return $this->cache;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDo(): mixed
+    {
+        return $this->do;
+    }
+
+    /**
+     * @return Explorer
+     */
+    public function getExplorer(): Explorer
+    {
+        return $this->explorer;
+    }
+
+    /**
+     * @return Smarty
+     */
+    public function getSmarty(): Smarty
+    {
+        return $this->smarty;
+    }
+
+    /**
+     * @return user
+     */
+    public function getUsers(): user
+    {
+        return $this->users;
+    }
+
+    /**
+     * @return GUMP
+     */
+    public function getValidator(): GUMP
+    {
+        return $this->validator;
+    }
+
+    /**
+     * @return Updater
+     */
+    public function getUpdater(): Updater
+    {
+        return $this->updater;
+    }
+
+    /**
+     * @return Row|null
+     */
+    public function getConfig(): ?Row
+    {
+        return $this->config;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAjax(): bool
+    {
+        return $this->ajax;
     }
 }

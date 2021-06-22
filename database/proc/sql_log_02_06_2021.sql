@@ -1,0 +1,1 @@
+INSERT INTO `artikel` SET `ean` = 170142, `name` = 'Hager{blank}Plantasche{blank}DIN{blank}A4{blank}Klarsicht', `tags` = 'Hager,Plantasche,FZ794,DIN{blank}A4,Einkleben,Pl&auml;ne,Dokumentation';
