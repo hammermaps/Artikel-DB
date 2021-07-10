@@ -24,17 +24,17 @@ $common = new common(true);
 $requestData= $_POST;
 $is_edit_mode = false;
 if(isset($_GET['type']) && $_GET['type'] === 'edit'
-    && $common->users->is_logged()) {
+    && $common->getUsers()->is_logged()) {
     $is_edit_mode = true;
 }
 
 // getting total number records without any search
 $sql = "SELECT `id` FROM artikel;";
-$CachedString = $common->cache->getItem(sha1($sql));
+$CachedString = $common->getCache()->getItem(sha1($sql));
 if ($is_edit_mode || is_null($CachedString->get())) {
     $query = $common->database->query($sql);
     $totalData = $query->getRowCount();
-    $CachedString->set($totalData)->expiresAfter(30);
+    $CachedString->set($totalData)->expiresAfter(30)->addTag('data');
     $common->cache->save($CachedString);
     $totalData = $totalFiltered = $CachedString->get();
 } else {

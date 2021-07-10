@@ -25,17 +25,18 @@ $notifications = new notifications($common);
 
 switch ($common->do) {
     case 'add':
-        $common->page_add();
+        new PageAdd($common);
         break;
     case 'edit':
-        $common->page_edit();
+        new PageEdit($common);
         break;
     case 'delete':
-        $common->page_delete();
+        new PageDelete($common);
         break;
-    case 'scan':
-        $common->page_scan();
+   /* case 'scan':
+        new PageScan($common);
         break;
+   */
     case 'login':
         $common->page_login('search');
         break;
