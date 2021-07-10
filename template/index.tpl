@@ -62,12 +62,12 @@
     <script src="{$index.dir}/vendor/datatables-responsive/dataTables.responsive.min.js"></script>
 
     <!-- Bootstrap Calendar JavaScript -->
-    <script src="{$index.dir}/js/calendar.js"></script>
+    <script src="{$index.dir}/js/calendar.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
     <script src="{$index.dir}/vendor/metismenu/js/metisMenu.min.js"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="{$index.dir}/js/template.js"></script>
+    <script src="{$index.dir}/js/template.min.js"></script>
 </body>
 </html>

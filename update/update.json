@@ -1,8 +1,9 @@
 {
-  "script_version": "1.0.0",
+  "script_version": "1.0.2",
   "script_versions": {
     "1.0.0": "script_1_0_0.zip",
-    "1.0.1": "script_1_0_1.zip"
+    "1.0.1": "script_1_0_1.zip",
+	"1.0.2": "script_1_0_2.zip",
   },
   "db_version": "2",
   "db_versions": {

@@ -1,7 +1,7 @@
 <?php
 class Updater
 {
-    const _VERSION = '1.0.0'; //1.0.1 ...
+    const _VERSION = '1.0.2';
 
     private common $common;
 
@@ -21,13 +21,15 @@ class Updater
         if($this->common->isAjax())
             return false;
 
-        $CachedString = $this->common->cache->getItem('update');
+        set_time_limit(120);
+
+        $CachedString = $this->common->getCache()->getItem('update');
         if (isset($_GET['reload']) || is_null($CachedString->get())) {
             $data = $this->call();
             if(!is_null($data) && !empty($data)) {
                 $data = json_decode($data,true);
                 $CachedString->set(serialize($data))->expiresAfter(600);
-                $this->common->cache->save($CachedString);
+                $this->common->getCache()->save($CachedString);
                 $data = unserialize($CachedString->get());
             }
         } else {
@@ -37,10 +39,10 @@ class Updater
         $clear = false;
         if(is_array($data) && !empty($data)) {
             //1# DB
-            if($data['db_version'] > $this->common->config->offsetGet('dbv')) {
+            if($data['db_version'] > $this->common->getConfig()->getDBV()) {
                 //Update Database Version
                 foreach ($data['db_versions'] as $key => $file) {
-                    if($key > $this->common->config->offsetGet('dbv')) {
+                    if($key > $this->common->getConfig()->getDBV()) {
                         $update_file = $file;
                     } else {
                         continue;
@@ -61,18 +63,18 @@ class Updater
                             $zip->close();
                             unlink($fullpath_file);
                         } else {
+                            set_time_limit(30);
                             return false;
                         }
                     }
 
                     $sql = file_get_contents(SCRIPT_PATH.'/database/updates/'.str_ireplace('.zip','.sql',$update_file));
                     if(!empty($sql)) {
-                        $this->common->database->beginTransaction();
-                        $this->common->database->query('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";');
-                        $this->common->database->query($sql);
-                        $this->common->database->query('UPDATE `config` SET `dbv` = ? WHERE `id` = 1;',
-                            $this->common->config->offsetGet('dbv')+1);
-                        $this->common->database->commit();
+                        $this->common->getDatabase()->beginTransaction();
+                        $this->common->getDatabase()->query('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";');
+                        $this->common->getDatabase()->query($sql);
+                        $this->common->getDatabase()->commit();
+                        $this->common->getConfig()->setDBV($this->common->getConfig()->getDBV()+1);
                     }
 
                     if(file_exists(SCRIPT_PATH.'/update.php')) {
@@ -102,6 +104,7 @@ class Updater
                         $zip->close();
                         unlink($fullpath_file);
                     } else {
+                        set_time_limit(30);
                         return false;
                     }
                 }
@@ -125,10 +128,12 @@ class Updater
                     unlink(SCRIPT_PATH.'/template_c/'.$files);
                 }
 
+                set_time_limit(30);
                 return true;
             }
         }
 
+        set_time_limit(30);
         return false;
     }
 
@@ -153,7 +158,7 @@ class Updater
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_POSTFIELDS,$encoded);
             curl_setopt($ch, CURLOPT_HEADER, 0);
-            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POST, !empty($encoded));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
             $sResult = curl_exec($ch);

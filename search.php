@@ -81,7 +81,7 @@ if(!empty($requestData['search']['value']) ) {
     if ($is_edit_mode || is_null($CachedString->get())) {
         $query = $common->database->query($sql);
         $rows = $query->fetchAll();
-        $CachedString->set(serialize($rows))->expiresAfter(10);
+        $CachedString->set(serialize($rows))->expiresAfter(10)->addTag('data');
         $common->cache->save($CachedString);
         $rows = unserialize($CachedString->get());
     } else {
@@ -96,7 +96,7 @@ if(!empty($requestData['search']['value']) ) {
     if ($is_edit_mode || is_null($CachedString->get())) {
         $query = $common->database->query($sql);
         $rows = $query->fetchAll();
-        $CachedString->set(serialize($rows))->expiresAfter(10);
+        $CachedString->set(serialize($rows))->expiresAfter(10)->addTag('data');
         $common->cache->save($CachedString);
         $rows = unserialize($CachedString->get());
     } else {
@@ -136,8 +136,16 @@ $json_data = array(
     "data"            => $data   // total data array
 );
 
-header('Content-type: application/x-javascript');
+$output = '';
 $jsonp = preg_match('/^[$A-Z_][0-9A-Z_$]*$/i', $_GET['callback']) ? $_GET['callback'] : false;
 if ( $jsonp ) {
-    echo $jsonp.'('.json_encode($json_data).');';
+    $output = $jsonp.'('.json_encode($json_data).');';
+}
+
+if(isset($_GET['compress']) && $_GET['compress'] == 1) {
+    header('Content-Encoding: gzip');
+    echo gzencode($output);
+} else {
+    header('Content-type: application/x-javascript');
+    echo $output;
 }

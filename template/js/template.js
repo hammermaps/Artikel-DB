@@ -79,12 +79,14 @@ $(document).ready(function() {
             }
         },
         ajax:{
-            url : (dataset_to_index === "edit" ? "search.php?type=edit" : "search.php?type=search"), // json datasource
+            url : (dataset_to_index === "edit" ? "search.php?type=edit&compress=1" : "search.php?type=search&compress=1"), // json datasource
+            //headers : {'Accept-Encoding': 'gzip '},
+            async: true,
             dataType: "jsonp",
             type: "post",
             error: function() {
                 $(".dataTables-error").html("");
-               // $("#dataTables").append('<tbody class="employee-grid-error"><tr><th colspan="2">Keine Daten auf dem Server gefunden</th></tr></tbody>');
+                $("#dataTables").append('<tbody class="employee-grid-error"><tr><th colspan="2">Keine Daten auf dem Server gefunden</th></tr></tbody>');
                 $("#dataTables_processing").css("display","none");
             },
         }
