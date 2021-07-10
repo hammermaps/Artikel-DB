@@ -1,4 +1,3 @@
-
 <!-- /.row -->
 <div class="row">
     {$notifications}

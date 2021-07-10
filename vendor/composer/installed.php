@@ -1,11 +1,11 @@
 <?php return array(
     'root' => array(
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => NULL,
+        'reference' => 'e74157395d8e9900c80d5a4f928334726b4f577f',
         'name' => 'hammermaps/herbste-artdb',
         'dev' => true,
     ),
@@ -20,12 +20,12 @@
             'dev_requirement' => false,
         ),
         'hammermaps/herbste-artdb' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => NULL,
+            'reference' => 'e74157395d8e9900c80d5a4f928334726b4f577f',
             'dev_requirement' => false,
         ),
         'nette/caching' => array(
@@ -53,6 +53,15 @@
             'install_path' => __DIR__ . '/../nette/finder',
             'aliases' => array(),
             'reference' => '4ad2c298eb8c687dd0e74ae84206a4186eeaed50',
+            'dev_requirement' => false,
+        ),
+        'nette/robot-loader' => array(
+            'pretty_version' => 'v3.4.0',
+            'version' => '3.4.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../nette/robot-loader',
+            'aliases' => array(),
+            'reference' => '3973cf3970d1de7b30888fd10b92dac9e0c2fd82',
             'dev_requirement' => false,
         ),
         'nette/utils' => array(

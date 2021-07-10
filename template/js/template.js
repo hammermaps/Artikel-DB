@@ -5,6 +5,22 @@
  */
 $(function() {
     $('#side-menu').metisMenu();
+
+    var currentYear = new Date().getFullYear();
+
+    $('#calendar').calendar({
+        style:'background',
+        dataSource: [
+            {
+                startDate: new Date(currentYear, 1, 4),
+                endDate: new Date(currentYear, 1, 15)
+            },
+            {
+                startDate: new Date(currentYear, 3, 5),
+                endDate: new Date(currentYear, 5, 15)
+            }
+        ]
+    });
 });
 
 $(function () {

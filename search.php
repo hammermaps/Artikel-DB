@@ -15,6 +15,7 @@ ini_set('display_errors', 0);
 define('SCRIPT_PATH', dirname($_SERVER["SCRIPT_FILENAME"]));
 define('VENDOR_PATH', SCRIPT_PATH.'/vendor');
 define('INCLUDE_PATH', SCRIPT_PATH.'/include');
+define('CONTROLLER_PATH', SCRIPT_PATH.'/controller');
 
 require_once VENDOR_PATH."/autoload.php";
 require_once INCLUDE_PATH."/common.inc.php";

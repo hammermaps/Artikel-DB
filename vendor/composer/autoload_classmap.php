@@ -80,6 +80,7 @@ return array(
     'Nette\\InvalidStateException' => $vendorDir . '/nette/utils/src/exceptions.php',
     'Nette\\Iterators\\CachingIterator' => $vendorDir . '/nette/utils/src/Iterators/CachingIterator.php',
     'Nette\\Iterators\\Mapper' => $vendorDir . '/nette/utils/src/Iterators/Mapper.php',
+    'Nette\\Loaders\\RobotLoader' => $vendorDir . '/nette/robot-loader/src/RobotLoader/RobotLoader.php',
     'Nette\\Localization\\ITranslator' => $vendorDir . '/nette/utils/src/compatibility.php',
     'Nette\\Localization\\Translator' => $vendorDir . '/nette/utils/src/Translator.php',
     'Nette\\MemberAccessException' => $vendorDir . '/nette/utils/src/exceptions.php',

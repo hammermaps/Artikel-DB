@@ -139,7 +139,8 @@ class Updater
      */
     private function call(string $file='update/update.json', array $data = []) {
         global $update_url;
-        if($fp = fsockopen(str_ireplace('https://','',$update_url),443,$errCode,$errStr,1)){
+        if($fp = @fsockopen(str_ireplace('https://','',$update_url),443,$errCode,$errStr,0.2)){
+            fclose($fp);
             $ch = curl_init($update_url.'/'.$file);
             $encoded = '';
             if(is_array($data) && count($data) >= 1) {
@@ -164,11 +165,9 @@ class Updater
             } else
             {
                 curl_close($ch);
-                fclose($fp);
                 return $sResult;
             }
         } else {
-            fclose($fp);
             return null;
         }
     }

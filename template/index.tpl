@@ -18,6 +18,9 @@
     <!-- DataTables Responsive CSS -->
     <link href="{$index.dir}/vendor/datatables-responsive/responsive.bootstrap.min.css" rel="stylesheet">
 
+    <!-- Bootstrap Calendar CSS -->
+    <link href="{$index.dir}/css/calendar.css" rel="stylesheet">
+
     <!-- MetisMenu CSS -->
     <link href="{$index.dir}/vendor/metismenu/css/metisMenu.min.css" rel="stylesheet">
 
@@ -57,6 +60,9 @@
     <script src="{$index.dir}/vendor/datatables/js/datatables.min.js"></script>
     <script src="{$index.dir}/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
     <script src="{$index.dir}/vendor/datatables-responsive/dataTables.responsive.min.js"></script>
+
+    <!-- Bootstrap Calendar JavaScript -->
+    <script src="{$index.dir}/js/calendar.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
     <script src="{$index.dir}/vendor/metismenu/js/metisMenu.min.js"></script>

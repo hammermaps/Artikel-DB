@@ -15,6 +15,7 @@ ini_set('display_errors', 1);
 define('SCRIPT_PATH', dirname($_SERVER["SCRIPT_FILENAME"]));
 define('VENDOR_PATH', SCRIPT_PATH.'/vendor');
 define('INCLUDE_PATH', SCRIPT_PATH.'/include');
+define('CONTROLLER_PATH', SCRIPT_PATH.'/controller');
 
 require_once VENDOR_PATH."/autoload.php";
 require_once INCLUDE_PATH."/common.inc.php";
@@ -41,8 +42,11 @@ switch ($common->do) {
     case 'export':
         $common->exportPDF();
         break;
+    case 'calendar':
+        $common->page_calendar();
+        break;
     default:
-        $common->page_search();
+        new PageSearch($common);
 }
 
 $common->page_output();

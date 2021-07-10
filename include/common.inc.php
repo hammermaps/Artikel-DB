@@ -8,14 +8,17 @@
 
 use Phpfastcache\CacheManager;
 use Nette\Database\{Connection, Explorer, Row};
-use Nette\Database\Table\ActiveRow;
 use Phpfastcache\Core\Pool\ExtendedCacheItemPoolInterface;
 use Dompdf\Dompdf;
 
 require_once INCLUDE_PATH."/config.inc.php";
-require_once INCLUDE_PATH."/notifications.inc.php";
-require_once INCLUDE_PATH."/user.inc.php";
-require_once INCLUDE_PATH."/updater.inc.php";
+
+$loader = new Nette\Loaders\RobotLoader;
+$loader->addDirectory(INCLUDE_PATH);
+$loader->addDirectory(CONTROLLER_PATH);
+$loader->addDirectory(SCRIPT_PATH.'/model');
+$loader->setTempDirectory(SCRIPT_PATH . '/cache');
+$loader->register();
 
 class common
 {
@@ -27,7 +30,7 @@ class common
     public GUMP $validator;
     public ExtendedCacheItemPoolInterface $cache;
     public user $users;
-    public ActiveRow $config;
+    public ModelConfig $config;
     public Updater $updater;
     public bool $ajax;
 
@@ -69,7 +72,7 @@ class common
         $this->smarty->setDebugging($debug);
         $this->smarty->setForceCompile(true);
 
-        $this->config = $this->explorer->table('config')->get(1);
+        $this->config = new ModelConfig($this->explorer);
 
         if(!$this->ajax) {
             //Check the Database & Update
@@ -79,7 +82,7 @@ class common
                 $version = explode('_', $update);
                 $version = str_ireplace('.sql', '', $version['1']);
                 if (!$baseVersion)
-                    $baseVersion = intval($this->config->offsetGet('dbv') + 1);
+                    $baseVersion = $this->config->getDBV() + 1;
 
                 if (intval($version) == $baseVersion) {
                     $sql = file_get_contents(SCRIPT_PATH . '/database/updates/' . $update);
@@ -87,8 +90,8 @@ class common
                         $this->database->beginTransaction();
                         $this->database->query('SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";');
                         $this->database->query($sql);
-                        $this->database->query('UPDATE `config` SET `dbv` = ? WHERE `id` = 1;', $baseVersion);
                         $this->database->commit();
+                        $this->config->setDBV($baseVersion);
                         $baseVersion++;
                     }
                 }
@@ -129,24 +132,13 @@ class common
         }
 
         $this->assign['index']['version'] = $this->updater->getVersion();
-        $this->assign['index']['dbv'] = $this->config->offsetGet('dbv');
+        $this->assign['index']['dbv'] = $this->config->getDBV();
 
         //Navigation
         $this->smarty->clearAllAssign();
         $this->smarty->assign('','');
         $this->smarty->assign('is_logged',$this->users->is_logged());
         $this->assign['index']['navigation'] = $this->smarty->fetch(SCRIPT_PATH.'/template/navigation/navigation.tpl');
-    }
-
-    //Search Page
-    public function page_search(): void {
-        $this->smarty->clearAllAssign();
-        $entities = $this->smarty->fetch(SCRIPT_PATH.'/template/search/search_entities.tpl');
-
-        $this->smarty->clearAllAssign();
-		$this->smarty->assign('notifications','');
-        $this->smarty->assign('entities',$entities);
-        $this->assign['index']['content'] = $this->smarty->fetch(SCRIPT_PATH.'/template/search/search_from.tpl');
     }
 
     //Login Page
@@ -367,8 +359,8 @@ class common
 
             $count++;
             $this->smarty->clearAllAssign();
-            $this->smarty->assign('ean',utf8_decode($row["ean"]));
-            $this->smarty->assign('bez',utf8_decode($row["name"]));
+            $this->smarty->assign('ean',utf8_decode($row["ean"]),true);
+            $this->smarty->assign('bez',utf8_decode($row["name"]),true);
             $show[$seite][] = $this->smarty->fetch(SCRIPT_PATH.'/template/export/show.tpl');
 
             if($count == 45) {
@@ -563,7 +555,7 @@ class common
     /**
      * @return Row|null
      */
-    public function getConfig(): ?Row
+    public function getConfig(): ?ModelConfig
     {
         return $this->config;
     }
