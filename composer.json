@@ -14,7 +14,7 @@
     "nette/database": "v3.1.3",
     "nette/robot-loader": "v3.4.0",
     "wixel/gump": "v1.12.1",
-    "phpfastcache/phpfastcache": "8.0.5",
+    "phpfastcache/phpfastcache": "8.0.7",
     "dompdf/dompdf": "v1.0.2"
   }
 }
